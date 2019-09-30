@@ -1,0 +1,30 @@
+{
+  "name": "converse",
+  "version": "1.0.0",
+  "private": "true",
+  "description": "Monitor/manage Votronic type MPPT/inverters",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "install": "electron-rebuild",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Prajna Pranab",
+  "license": "Parity-6.0.0",
+  "linux": {
+    "icon": "./conversol.png"
+  },
+  "devDependencies": {
+    "electron": "6.0.10",
+    "electron-rebuild": "^1.8.6",
+    "node-hid": "^0.7.9",
+    "usb": "^1.6.0"
+  },
+  "dependencies": {
+    "usb": "^1.6.0",
+    "node-hid": "^0.7.9",
+    "python-shell": "^1.0.8",
+    "serialport": "^7.1.5"
+  }
+}
