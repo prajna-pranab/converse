@@ -18,6 +18,12 @@
 
     		NOTES:
     		responses for setting commands are (ACK9 \r or (NAKss\r
+    		CV = Constant Voltage = Absorb
+    		CC = Constant Current = bulk
+    		Calibrate battery voltage reading:
+    		See: http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2275#p71631
+    		BTAg01XP nudge up
+    		BTA</9d* nudge down
     	*/
         const test = true;	// set true to run in test mode
     	let port,			// reference for opened coms port
@@ -469,6 +475,61 @@
 					return '<b>QPICF (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
 				},
+				QFS: () => {
+					/*
+					 from posting by Coulomb
+					 http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2200#p71161
+					 modes seem to be in different format to QMOD command
+					 status doesn't appear to be bitfield (see posting)
+					*/
+					const modes = {'00': 'Power On', '01': 'Standby', '04': 'Line',
+						'03': 'Battery', '06': 'Fault', '02': 'Power Saving'};
+					if (test) data = '(00 00 00 0000 0000 0000 000.0 00.00 000.0 ' +
+					'00.00 000.0 000.0 00.0 000 000';
+					let fields = data.slice(1).split(' '),
+						flags = fields[2];
+					return '<b>QFS Fault query?</b><br />' +
+						'Fault record status: ' +
+							(fields[0] == '01' ? 'Recording' : 'Not recording') +
+							'<br/ >' +
+						'Fault code: ' + fields[1] + '<br />' +
+						'Inverter mode: ' + modes[fields[2]] + '<br />' +
+						'Apparent load: ' + fields[3] + 'VA<br />' +
+						'True load: ' + fields[4] + 'W<br />' +
+						'Inverter load: ' + fields[5] + 'W<br />' +
+						'Line voltage: ' + fields[6] + 'V<br />' +
+						'Line frequency: ' + fields[7] + 'Hz<br />' +
+						'Output voltage: ' + fields[8] + 'V<br />' +
+						'Output frequency: ' + fields[9] + 'Hz<br />' +
+						'Output current: ' + fields[10] + 'A<br />' +
+						'Bus voltage: ' + fields[11] + 'V<br />' +
+						'Battery voltage: ' + fields[12] + 'V<br />' +
+						'System max temp: ' + fields[13] + '&deg;C<br />' +
+						'Status:' + fields[14];
+				},
+				QFAULT: () => {
+					/*
+					 from posting by Coulomb
+					 http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2200#p71161
+					*/
+					const modes = {'00': 'Power On', '01': 'Standby', '04': 'Line',
+						'03': 'Battery', '06': 'Fault', '02': 'Power Saving'};
+					if (test) data = '(00 00 0000 0000 0000 000.0 000.0 00.00' +
+						' 000.0 000.0';
+					let fields = data.slice(1).split(' '),
+						flags = fields[2];
+					return '<b>QFS Fault query?</b><br />' +
+						'Fault code: ' + fields[0] + '<br />' +
+						'Inverter mode: ' + modes[fields[1]] + '<br />' +
+						'Apparent load: ' + fields[2] + 'VA<br />' +
+						'True load: ' + fields[3] + 'W<br />' +
+						'Inverter load: ' + fields[4] + 'W<br />' +
+						'Bus voltage: ' + fields[5] + 'V<br />' +
+						'Line voltage: ' + fields[6] + 'V<br />' +
+						'Line frequency: ' + fields[7] + 'Hz<br />' +
+						'Output voltage: ' + fields[8] + 'V<br />' +
+						'Output current: ' + fields[9] + 'A';
+				},
 				QSVFW2: () => {
 					if (test) data = '(0000';
 					let fields = data.slice(1).split(' '),
@@ -647,6 +708,8 @@
 			<button onClick="sendQuery('QPIHF')">QPIHF: ?</button><br />
 			<button onClick="sendQuery('QPICF')">QPICF: ?</button><br />
 			<button onClick="sendQuery('QSVFW2')">QSVFW2: ?</button><br />
+			<button onClick="sendQuery('QFS')">QFS: Fault query1?</button><br />
+			<button onClick="sendQuery('QFAULT')">QFS: Fault query2?</button><br />
 		</div>
     </div>
 </body>
