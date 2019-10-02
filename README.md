@@ -7,4 +7,4 @@ This software was written for and tested on a Conversol III MPPT charge controll
 
 So far it only supports sending various status enquiries and parsing responses.
 
-It is using node.js in the electron framework. Installation requires node and npm. Clone the repository and then run node start.
+It is using node.js in the electron framework. Installation requires node and npm. Clone the repository and then run '''npm start'''.

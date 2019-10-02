@@ -206,6 +206,9 @@
 						'Mode: ' + modes[data[1]];
 				},
 				QPIWS: () => {
+					/*
+						Returns different values on protocol 3000
+					*/
 					if (test) data = '(10101010101010101010101010101010101010';
 					const isSet = pos => { return data[pos] == '1' }
 					const chk = (str, pos, type) => {
@@ -316,6 +319,19 @@
 							(fields[26] == '0' ? 'Disabled<br />' : 'Enabled<br />') +
 						'Max Solar charging current: ' + fields[27] + 'A<br />' +
 						'CV Charging time: ' + fields[28] + 'mins';
+				},
+				QBEQI: () => {
+					if (test) data = '(1 000 000 000 000 00.00 000 000';
+					let fields = data.slice(1).split(' ');
+					return '<b>QBEQI (Equalisation status)</b><br />' +
+						'Battery equalized: ' + (fields[0] == '1' ? 'Yes' : 'No') + '<br />' +
+						'Equalize time: ' + fields[1] + 'mins<br />' +
+						'Equalize Interval: ' + fields[2] + 'days<br />' +
+						'Max current: ' + fields[3] + 'A<br />' +
+						'Next equalize: ' + fields[4] + 'days<br />' +
+						'Equalized voltage: ' + fields[5] + 'V<br />' +
+						'Absorb time: ' + fields[6] + 'mins<br />' +
+						'Equalize timeout: ' + fields[7] + 'mins';
 				},
 				QMCHGCR: () => {
 					if (test) data = '(000 000 000 000';
@@ -691,7 +707,8 @@
 			<button onClick="sendQuery('QBOOT')">DSP has bootstrap?</button><br />
 			<button onClick="sendQuery('QOPM')">Output mode (For 4000/5000)</button><br />
 			<button onClick="sendQuery('QCST')">Charging stages</button><br />
-			<button onClick="sendQuery('QCVT')">Absorb Charging time</button>
+			<button onClick="sendQuery('QCVT')">Absorb Charging time</button><br />
+			<button onClick="sendQuery('QBEQI')">Equalisation</button>
 		</div>
 		<div>
 			<button onClick="sendQuery('QBV')">QBV: SoC?</button><br />
