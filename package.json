@@ -7,6 +7,7 @@
   "scripts": {
     "start": "electron .",
     "install": "electron-rebuild",
+    "rebuild": "electron-rebuild",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,15 +17,17 @@
     "icon": "./conversol.png"
   },
   "devDependencies": {
+    "bluetooth-serial-port": "^2.2.6",
     "electron": "6.0.10",
     "electron-rebuild": "^1.8.6",
     "node-hid": "^0.7.9",
     "usb": "^1.6.0"
   },
   "dependencies": {
-    "usb": "^1.6.0",
+    "bluetooth-serial-port": "^2.2.6",
     "node-hid": "^0.7.9",
     "python-shell": "^1.0.8",
-    "serialport": "^7.1.5"
+    "serialport": "^7.1.5",
+    "usb": "^1.6.0"
   }
 }

@@ -17,33 +17,34 @@
     		by Prajna Pranab, Libra 13520
 
     		NOTES:
-    		responses for setting commands are (ACK9 \r or (NAKss\r
     		CV = Constant Voltage = Absorb
     		CC = Constant Current = bulk
     		Calibrate battery voltage reading:
     		See: http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2275#p71631
     		BTAg01XP nudge up
     		BTA</9d* nudge down
+
+    		Conversol 5KW III, Axpert VM III, PIP5048GK
     	*/
-        const test = true;	// set true to run in test mode
-    	let port,			// reference for opened coms port
+        let test = false,	// set true to run in test mode
+    		port,			// reference for opened coms port
         	cmd;			// last command that was sent
  
 		// parse data received from the controller
 		const parseQuery = (cmd, data) => {
 			const queries = {
 				QPI: () => {
-					if (test) data = '(PI00';
+					if (test && data == '') data = '(PI00';
 					return '<b>QPI (Protocol ID)</b><br />' +
 						'Protocol ID: ' + data.slice(1);
 				},
 				QID: () => {
-					if (test) data = '(00000000000000';
+					if (test && data == '') data = '(00000000000000';
 					return '<b>QID (Serial number)</b><br />' +
 						'Serial No: ' + data.slice(1);
 				},
 				QVFW: () => {
-					if (test) data = '(VERFW: 00000.00';
+					if (test && data == '') data = '(VERFW: 00000.00';
 					let fields = data.slice(8).split('.');
 					return '<b>QVFW (Main CPU Firmware version)</b><br />' +
 						'Series: ' + fields[0] +
@@ -498,8 +499,8 @@
 					 modes seem to be in different format to QMOD command
 					 status doesn't appear to be bitfield (see posting)
 					*/
-					const modes = {'00': 'Power On', '01': 'Standby', '04': 'Line',
-						'03': 'Battery', '06': 'Fault', '02': 'Power Saving'};
+					const modes = {'00': 'Power On', '02': 'Standby', '03': 'Battery',
+						'04': 'Line', '05': 'Bypass', '06': 'Fault', '07': 'Shutdown'};
 					if (test) data = '(00 00 00 0000 0000 0000 000.0 00.00 000.0 ' +
 					'00.00 000.0 000.0 00.0 000 000';
 					let fields = data.slice(1).split(' '),
@@ -557,62 +558,45 @@
 			// check it is a query command we recognise
 			if (queries.hasOwnProperty(cmd))
 				document.querySelector('#parsed').innerHTML = queries[cmd]();
-			// display the raw result minus the CRC
-			if (test) document.querySelector('#recv').textContent = data;
+			// in run mode port.on('data') takes care of this
+			if (test) {
+				// display the raw result minus the CRC
+				document.querySelector('#recv').textContent = data;
+			}
 		}
 
-		// set up serial connection
-		const sp = require('serialport');
-		sp.list((err, ports) => {
-			// window elements to update
-			const comsInfo = document.querySelector('#port'),
-				comsError = document.querySelector('#comsError');
-			// handle listing errors
-			if (err) {
-				console.error('Listing ports returned: ', err.message);
-				return;
+		// simulate serial port write() and on('data') events for testing
+		fakePort = {
+			write: (buff, err) => {
+				switch (cmd) {
+					case 'QPI': rxData(
+						Buffer.from([40,80,73,51,48,154,11,13])); break;
+					case 'QID':  rxData(
+						Buffer.from([40,57,50,57,51,49,56,49,49,49,48,48,48,52,54,233,99,13])); break;
+					case 'QVFW':  rxData(
+						Buffer.from([40,86,69,82,70,87,58,48,48,48,50,48,46,54,53,254,12,13])); break;
+					default: parseQuery(cmd, '');
+				}
 			}
-			// filter out ports with no vendorId
-			let devices = ports.filter( elm => {
-				return elm.vendorId != undefined;	
-			});
-			// use the first valid port if there is one
-			if (devices.length) {
-				port = new sp(devices[0].comName, {
-					baudRate: 2400,
-					parser: new sp.parsers.Readline('\r')
-				});
-				// handle open port errors
-				port.on('error', err => {
-				  console.error('Opening port returned: ', err.message);
-				});
-				// handle coms responses
-				port.on('data', data => {
-					// response = body + crc + /r
-					let crc = data.slice(-3, -1),
-						body = data.slice(0, -3);
-					// check CRC
-					if (CRCXModem(body) != crc)
-						comsError.textContent = 'CRC error!'
-					else
-						comsError.textContent = '';
-					// update window and log with results
-				 	document.querySelector('#recv').textContent = body;
-					console.log('Rx: ', body);
-				 	parseQuery(cmd, body);
-				});
-				// update window and log
-				comsInfo.innerHTML =
-					'<b>Connected to</b> ' + devices[0].manufacturer + ' <b>on</b> '
-						+ devices[0].comName;
-				console.log('Connected to ' + devices[0].manufacturer.trim()
-					+ ' on ' + devices[0].comName);
-			} else {
-				console.error('No serial device found!');
-				comsInfo.innerHTML =
-					'<b class="fault">Not connected:</b> no serial device found.';
-			}
-		});
+		}
+
+		// recieve data packets
+		const rxData = data => {
+			// response = body + crc + /r
+			let crc = data.slice(-3, -1),
+				body = data.slice(0, -3).toString(),
+				crcTxt = crc.toString('hex'),
+				chk = CRCXModem(body);
+			// check crc
+			if (chk[0] != crc[0] || chk[1] != crc[1])
+				comsError.textContent = 'CRC error!'
+			else
+				comsError.textContent = '';
+			// update window and log with results
+		 	document.querySelector('#recv').textContent = body;
+			console.log('Rx:', body, `(${crcTxt})`);
+		 	parseQuery(cmd, body);
+		}
 
 		// calculate XModem CRC-16
 		const CRCXModem = str => {
@@ -636,34 +620,110 @@
 			if ([0x0a,0x0d,0x28].includes(lsb)) {
 				lsb++;
 			}
-//			console.log('msb: ', msb.toString(16), ' lsb: ', lsb.toString(16));
-			return String.fromCodePoint(msb, lsb);
+			return Uint8Array.from([msb, lsb]);
 		}
 
 		// send command to controller
 		const sendQuery = txt => {
-			// known command strings with CRCs, for testing
-			let QPIGS = [0x51,0x50,0x49,0x47,0x53,0xb7,0xa9,0x0d],
-				QPIWS = [0x51,0x50,0x49,0x57,0x53,0xB4,0xDA,0x0D],
-				QDI   = [0x51,0x44,0x49,0x71,0x1B,0x0D],
-				QMOD  = [0x51,0x4D,0x4F,0x44,0x49,0xC1,0x0D],
-				QVFW  = [0x51,0x56,0x46,0x57,0x62,0x99,0x0D],
-				QVFW2 = [0x51,0x56,0x46,0x57,0x32,0xC3,0xF5,0x0D];
+			// convert command, crc and \r to buffer
+			let bytes = Buffer.concat([
+				Buffer.from(txt, 'utf-8'),
+				CRCXModem(txt),
+				Uint8Array.from(0x0d)
+			]);
 			// save the command so the reply parser knows what it is
 			cmd = txt;
-			// simulate response if testing
-			if (test) parseQuery(txt, null);
-			// send it with CRC and carriage return
-//			port.write(QPIGS, err => {
-			port.write(txt + CRCXModem(txt) + '\r', err => {
-				if (err) {
-					console.error('Writing returned: ', err.message);
-				}
-			});
 			// update window and log
 			document.querySelector('#sent').textContent = txt;
-			console.log('Tx: ', txt);
+			console.log('Tx:', bytes.toString('hex'), `(${txt})`);
+			// send it
+			port.write(bytes, err => {
+				if (err) {
+					console.error('Writing returned:', err.message);
+				}
+			});
 		}
+
+		// set up serial connection
+		const sp = require('serialport'),
+			Readline = require('@serialport/parser-readline'),
+			parser = new Readline({ delimiter: '\r' });
+		sp.list((err, ports) => {
+			// window elements to update
+			const comsInfo = document.querySelector('#port'),
+				comsError = document.querySelector('#comsError');
+			// handle listing errors
+			if (err) {
+				console.error('Listing ports returned:', err.message);
+				return;
+			}
+			// filter out ports with no vendorId
+			let devices = ports.filter( elm => {
+				return elm.vendorId != undefined;	
+			});
+
+			// use the first valid port if there is one
+			if (devices.length) {
+				port = new sp(devices[0].comName, {
+					baudRate: 2400
+				});
+				// set up parser to read whole lines
+				port.pipe(parser);
+				// handle open port errors
+				port.on('error', err => {
+				  console.error('Opening port returned:', err.message);
+				});
+				// handle coms responses
+				port.on('open', () => {
+					console.log('Opened', port.path);
+					parser.on('data', rxData(data));
+				});
+				// update window and log
+				comsInfo.innerHTML =
+					'<b>Found</b> ' + devices[0].manufacturer + ' <b>on</b> '
+						+ devices[0].comName;
+				console.log('Found', devices[0].manufacturer.trim(),
+					'on', devices[0].comName);
+			} else {
+				console.warn('No serial device found!');
+				comsInfo.innerHTML =
+					'<b class="fault">Not connected:</b> no serial device found.';
+				// we can still test the software with no connection by calling
+				// our fakeport's write rather than port.write()
+				test = true;
+				port = fakePort;
+			}
+		});
+
+/*		// try bluetooth
+		var btSerial = new (require('bluetooth-serial-port')).BluetoothSerialPort();
+
+		btSerial.on('found', function(address, name) {
+			btSerial.findSerialPortChannel(address, function(channel) {
+				btSerial.connect(address, channel, function() {
+					console.log('Bluetooth connected');
+
+					btSerial.write(Buffer.from('my data', 'utf-8'), function(err, bytesWritten) {
+						if (err) console.log(err);
+					});
+
+					btSerial.on('data', function(buffer) {
+						console.log(buffer.toString('utf-8'));
+					});
+				}, function () {
+					console.log('Bluetooth cannot connect');
+				});
+
+				// close the connection when you're ready
+				btSerial.close();
+			}, function() {
+				console.log('Bluetooth found nothing');
+			});
+		});
+
+		btSerial.inquire();
+
+*/
 	</script>
     <style>
         body { background-color: Window; color: WindowText; font: caption; }

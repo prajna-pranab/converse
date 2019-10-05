@@ -17,4 +17,10 @@ function createWindow() {
 	window.loadFile('index.html');
 }
 
+/* for bluetooth
+app.commandLine.appendSwitch('enable-experimental-web-platform-features', true);
+app.commandLine.appendSwitch('enable-web-bluetooth', true);
+app.commandLine.appendSwitch('no-sandbox', true);
+*/
+
 app.on('ready', createWindow)
