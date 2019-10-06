@@ -26,7 +26,10 @@
 
     		Conversol 5KW III, Axpert VM III, PIP5048GK
     	*/
-        let test = false,	// set true to run in test mode
+		const sp = require('serialport'),
+			Readline = require('@serialport/parser-readline'),
+			parser = new Readline({ delimiter: '\r' });
+        let test = false,	// set true or disconnect serial cable to run in test mode
     		port,			// reference for opened coms port
         	cmd;			// last command that was sent
  
@@ -34,44 +37,57 @@
 		const parseQuery = (cmd, data) => {
 			const queries = {
 				QPI: () => {
-					if (test && data == '') data = '(PI00';
+					// response: (PI00
 					return '<b>QPI (Protocol ID)</b><br />' +
 						'Protocol ID: ' + data.slice(1);
 				},
 				QID: () => {
-					if (test && data == '') data = '(00000000000000';
+					// response: (00000000000000
 					return '<b>QID (Serial number)</b><br />' +
 						'Serial No: ' + data.slice(1);
 				},
 				QVFW: () => {
-					if (test && data == '') data = '(VERFW: 00000.00';
-					let fields = data.slice(8).split('.');
+					// response: (VERFW:00000.00
+					const fields = data.slice(7).split('.');
 					return '<b>QVFW (Main CPU Firmware version)</b><br />' +
 						'Series: ' + fields[0] +
 						'<br />Version: ' + fields[1];
 				},
 				QVFW2: () => {
-					if (test) data = '(VERFW2: 00000.00';
-					let fields = data.slice(9).split('.');
+					// response: (VERFW2:00000.00
+					if (test) data = '(VERFW2:00000.00';
+					if (data == '(NAK')
+						return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />' +
+						'Not supported';
+					const fields = data.slice(8).split('.');
 					return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />' +
 						'Series: ' + fields[0] +
 						'<br />Version: ' + fields[1];
 				},
 				QVFW3: () => {
-					if (test) data = '(VERFW3: 00000.00';
-					let fields = data.slice(9).split('.');
+					// response: (VERFW3:00000.00
+					if (test) data = '(VERFW3:00000.00';
+					if (data == '(NAK')
+						return '<b>QVFW3 (SCC2 CPU Firmware version)</b><br />' +
+						'Not supported';
+					const fields = data.slice(8).split('.');
 					return '<b>QVFW2 (SCC2 CPU Firmware version)</b><br />' +
 						'Series: ' + fields[0] +
 						'<br />Version: ' + fields[1];
 				},
 				QVFW4: () => {
-					if (test) data = '(VERFW4: 00000.00';
-					let fields = data.slice(9).split('.');
+					// response: (VERFW4:00000.00
+					if (data == '(NAK')
+						return '<b>QVFW42 (SCC3 CPU Firmware version)</b><br />' +
+						'Not supported';
+					const fields = data.slice(8).split('.');
 					return '<b>QVFW2 (SCC3 CPU Firmware version)</b><br />' +
 						'Series: ' + fields[0] +
 						'<br />Version: ' + fields[1];
 				},
 				QPIRI: () => {
+					// response: (000.0 00.0 000.0 00.0 00.0 0000 0000 00.0
+					//			00.0 00.0 00.0 00.0 0 00 000 0 0 0 0 10 0 0 00.0 0 0
 					const batteryTypes = {'0': 'AGM', '1': 'FLA', '2': 'User Defined'},
 						voltageRanges = {'0': 'Appliance', '1': 'UPS'},
 						outputSources = {'0': 'Utility first', '1': 'Solar first', '2': 'SBU'},
@@ -83,10 +99,8 @@
 						outputModes = {'0': 'Single', '1': 'Parallel', '2': 'Phase 1',
 							'3': 'Phase 2', '4': 'Phase 3'},
 						pvStatuses = {'0': 'On one OK', '1': 'On all OK'},
-						balances = {'0': 'PV max current', '1': 'PV max power'};
-					if (test) data = '(000.0 00.0 000.0 00.0 00.0 0000 0000 00.0 ' +
-						'00.0 00.0 00.0 00.0 0 00 000 0 0 0 0 10 0 0 00.0 0 0';
-					let fields = data.slice(1).split(' ');
+						balances = {'0': 'PV max current', '1': 'PV max power'},
+						fields = data.slice(1).split(' ');
 					return '<b>QPIRI (Rating Information)</b><br />' +
 						'Grid Rating Voltage: ' + fields[0] + 'V<br />' +
 						'Grid rating current: ' + fields[1] + 'A<br />' +
@@ -115,26 +129,28 @@
 						'PV power balance: ' + balances[fields[24]];
 				},
 				QFLAG: () => {
-					const flags = pos => {
-						return data[pos] == 'E' ? 'Enabled<br />' : 'Disabled<br />';
+					// response: (EaxyzDbjkuv
+					const flag = letter => {
+						if (data.indexOf(letter) == -1) return 'Not supported<br />';
+						return (data.indexOf(letter) < data.indexOf('D') ?
+							'Enabled<br />' : 'Disabled<br />');
 					}
-					if (test) data = '(EDEDEDEDED';
 					return '<b>QFLAG (Flag status)</b><br />' + 
-						'Buzzer: ' + flags(1) +
-						'Overload bypass ' + flags(2) +
-						'Power saving: ' + flags(3) +
-						'LCD timeout: ' + flags(4) +
-						'Overload restart: ' + flags(5) +
-						'Over temp restart: ' + flags(6) +
-						'Backlight: ' + flags(7) +
-						'Source interrupt alarm: ' + flags(8) +
-						'Record fault codes: ' + flags(9) +
-						'Data log popup: ' + flags(10);
+						'Buzzer: ' + flag('a') +
+						'Overload bypass ' + flag('b') +
+						'Power saving: ' + flag('j') +
+						'LCD timeout: ' + flag('k') +
+						'Overload restart: ' + flag('u') +
+						'Over temp restart: ' + flag('v') +
+						'Backlight: ' + flag('x') +
+						'Source interrupt alarm: ' + flag('y') +
+						'Record fault codes: ' + flag('z') +
+						'Data log popup: ' + flag('l');
 				},
 				QPIGS: () => {
 					if (test) data = '(000.0 00.0 000.0 00.0 0000 0000 000 000 00.00 000 ' +
 						'000 0000 0000 000.0 00.00 00000 10101010 00 00 00000 000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[16];
 					return '<b>QPIGS (Inverter status)</b><br />' + 
 						'Grid voltage: ' + fields[0] + 'V<br />' +
@@ -180,7 +196,7 @@
 				QPIGS2: () => {
 					if (test) data = '(0000 000.0 00.00 00000 00000000 0000 0000 0000 ' +
 						'000.0 00.00 0000 00000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[4];
 					return '<b>QPIGS2 (SCC additional status)</b><br />' +
 						'SCC2 input current: ' + fields[0] + 'A<br />' +
@@ -275,7 +291,7 @@
 						stages = {'0': 'Auto', '1': '2 stage', '2': '3 stage'};
 					if (test) data = '(000.0 00.0 0000 00.0 00.0 00.0 00.0 00 0 0 ' +
 						'0 0 0 0 0 0 1 1 0 0 1 0 00.0 0 0 1 1 000 000';
-					let fields = data.slice(1).split(' ');
+					const fields = data.slice(1).split(' ');
 					return '<b>QDI (Default setting values)</b><br />' +
 						'AC output voltage: ' + fields[0] + 'V<br />' +
 						'AC output frequency: ' + fields[1] + 'Hz<br />' +
@@ -323,7 +339,7 @@
 				},
 				QBEQI: () => {
 					if (test) data = '(1 000 000 000 000 00.00 000 000';
-					let fields = data.slice(1).split(' ');
+					const fields = data.slice(1).split(' ');
 					return '<b>QBEQI (Equalisation status)</b><br />' +
 						'Battery equalized: ' + (fields[0] == '1' ? 'Yes' : 'No') + '<br />' +
 						'Equalize time: ' + fields[1] + 'mins<br />' +
@@ -336,24 +352,24 @@
 				},
 				QMCHGCR: () => {
 					if (test) data = '(000 000 000 000';
-					let details = '<b>QMCHGCR (Max charging current settings)</b><br />',
-						fields = data.slice(1).split(' ');
+					const fields = data.slice(1).split(' ');
+					let details = '<b>QMCHGCR (Max charging current settings)</b><br />';
 					for (let fld of fields)
 						details += fld + '<br />';
 					return details;
 				},
 				QMUCHGCR: () => {
 					if (test) data = '(000 000 000 000 000 000';
-					let details = '<b>QMUCHGCR (Max utility charging current settings)</b><br />',
-						fields = data.slice(1).split(' ');
+					const fields = data.slice(1).split(' ');
+					let details = '<b>QMUCHGCR (Max utility charging current settings)</b><br />';
 					for (let fld of fields)
 						details += fld + '<br />';
 					return details;
 				},
 				QMSCHGCR: () => {
 					if (test) data = '(000 000 000 000 000 000';
-					let details = '<b>QMUCHGCR (Max solar charging current settings)</b><br />',
-						fields = data.slice(1).split(' ');
+					const fields = data.slice(1).split(' ');
+					let details = '<b>QMUCHGCR (Max solar charging current settings)</b><br />';
 					for (let fld of fields)
 						details += fld + '<br />';
 					return details;
@@ -378,22 +394,22 @@
 				},
 				QCVT: () => {
 					if (test) data = '(000';
-					let details = data.slice(1);
+					const details = data.slice(1);
 					return '<b>QCVT (Charging time in CV mode)</b><br />' +
 						'Time: ' + (details == '255' ? 'Auto' : details + 'mins');
 				},
 				QBV: () => {
 					if (test) data = '(000';
-					let details = data.slice(1);
+					const details = data.slice(1);
 					return '<b>QBV (SoC compensated voltage?)</b><br />' +
 						'Not yet supported';
 				},
 				Q1: () => {
-					const statuses = {'10': 'Not charging', '11': 'Bulk mode',
-						'12': 'Absorb mode', '13': 'Float mode'}
 					if (test) data = '(0000 00000 00 00 00 000 000 000 000' +
 						'00 00 000 0000 0000 0000 00.00 10';
-					let fields = data.slice(1).split(' '),
+					const statuses = {'10': 'Not charging', '11': 'Bulk mode',
+						'12': 'Absorb mode', '13': 'Float mode'},
+						fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>Q1 (Undocumented)</b><br />' +
 						'Absorb (CV) time: ' + fields[0] + 'secs<br />' +
@@ -414,80 +430,80 @@
 						'Inverter charge status:' + statuses[fields[15]];
 				},
 				QGS: () => {
-					const statuses = {'10': 'Not charging', '11': 'Bulk mode',
-						'12': 'Absorb mode'}
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const statuses = {'10': 'Not charging', '11': 'Bulk mode',
+						'12': 'Absorb mode'},
+						fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QGS (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
 				},
 				QSID: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QSID (Undocumented: serial no?)</b><br />' +
 						'Not yet implemented';
 				},
 				QID2: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QID2 (Undocumented: id?)</b><br />' +
 						'Not yet implemented';
 				},
 				QDM: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QGS (Undocumented: device model?)</b><br />' +
 						'Not yet implemented';
 				},
 				QCHT: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QCHT (Undocumented: CHT support)</b><br />' +
 						'Not yet implemented';
 				},
 				QPPS: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QPPS (Undocumented: QPPS support)</b><br />' +
 						'Not yet implemented';
 				},
 				QCHGS: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QCHGS (Undocumented: CHGS id?)</b><br />' +
 						'Not yet implemented';
 				},
 				QMD: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QMD (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
 				},
 				QVFTR: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QVFTR (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
 				},
 				QPIHF: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QPIHF (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
 				},
 				QPICF: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QPICF (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
@@ -499,11 +515,11 @@
 					 modes seem to be in different format to QMOD command
 					 status doesn't appear to be bitfield (see posting)
 					*/
-					const modes = {'00': 'Power On', '02': 'Standby', '03': 'Battery',
-						'04': 'Line', '05': 'Bypass', '06': 'Fault', '07': 'Shutdown'};
 					if (test) data = '(00 00 00 0000 0000 0000 000.0 00.00 000.0 ' +
 					'00.00 000.0 000.0 00.0 000 000';
-					let fields = data.slice(1).split(' '),
+					const modes = {'00': 'Power On', '02': 'Standby', '03': 'Battery',
+						'04': 'Line', '05': 'Bypass', '06': 'Fault', '07': 'Shutdown'},
+						fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QFS Fault query?</b><br />' +
 						'Fault record status: ' +
@@ -529,11 +545,11 @@
 					 from posting by Coulomb
 					 http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2200#p71161
 					*/
-					const modes = {'00': 'Power On', '01': 'Standby', '04': 'Line',
-						'03': 'Battery', '06': 'Fault', '02': 'Power Saving'};
 					if (test) data = '(00 00 0000 0000 0000 000.0 000.0 00.00' +
 						' 000.0 000.0';
-					let fields = data.slice(1).split(' '),
+					const modes = {'00': 'Power On', '01': 'Standby', '04': 'Line',
+						'03': 'Battery', '06': 'Fault', '02': 'Power Saving'},
+						fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QFS Fault query?</b><br />' +
 						'Fault code: ' + fields[0] + '<br />' +
@@ -549,7 +565,7 @@
 				},
 				QSVFW2: () => {
 					if (test) data = '(0000';
-					let fields = data.slice(1).split(' '),
+					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QSVFW2 (Undocumented: ?)</b><br />' +
 						'Not yet implemented';
@@ -565,16 +581,26 @@
 			}
 		}
 
-		// simulate serial port write() and on('data') events for testing
+		// simulate port.write() and parser.on('data') events for testing
 		fakePort = {
 			write: (buff, err) => {
 				switch (cmd) {
 					case 'QPI': rxData(
 						Buffer.from([40,80,73,51,48,154,11,13])); break;
 					case 'QID':  rxData(
-						Buffer.from([40,57,50,57,51,49,56,49,49,49,48,48,48,52,54,233,99,13])); break;
+						Buffer.from([40,57,50,57,51,49,56,49,49,49,48,48,48,48,48,0x45,0x61,13])); break;
 					case 'QVFW':  rxData(
 						Buffer.from([40,86,69,82,70,87,58,48,48,48,50,48,46,54,53,254,12,13])); break;
+					case 'QVFW4': rxData(
+						Buffer.from([40,78,65,75,115,115,13])); break;
+					case 'QPIRI': rxData(
+						Buffer.from([40,50,51,48,46,48,32,50,49,46,55,32,50,51,48,46,48,32,
+							53,48,46,48,32,50,49,46,55,32,53,48,48,48,32,53,48,48,48,32,
+							52,56,46,48,32,52,57,46,48,32,52,51,46,48,32,53,56,46,52,32,
+							53,52,46,48,32,49,32,50,48,32,48,52,48,32,48,32,50,32,49,32,
+							49,32,48,49,32,48,32,48,32,53,52,46,48,32,48,32,49,74,200,13])); break;
+					case 'QFLAG': rxData(
+						Buffer.from([40,69,97,120,121,122,68,98,106,107,117,118,2,127,13])); break;
 					default: parseQuery(cmd, '');
 				}
 			}
@@ -626,7 +652,7 @@
 		// send command to controller
 		const sendQuery = txt => {
 			// convert command, crc and \r to buffer
-			let bytes = Buffer.concat([
+			const bytes = Buffer.concat([
 				Buffer.from(txt, 'utf-8'),
 				CRCXModem(txt),
 				Uint8Array.from(0x0d)
@@ -645,9 +671,6 @@
 		}
 
 		// set up serial connection
-		const sp = require('serialport'),
-			Readline = require('@serialport/parser-readline'),
-			parser = new Readline({ delimiter: '\r' });
 		sp.list((err, ports) => {
 			// window elements to update
 			const comsInfo = document.querySelector('#port'),
@@ -658,7 +681,7 @@
 				return;
 			}
 			// filter out ports with no vendorId
-			let devices = ports.filter( elm => {
+			const devices = ports.filter( elm => {
 				return elm.vendorId != undefined;	
 			});
 
@@ -689,7 +712,7 @@
 				comsInfo.innerHTML =
 					'<b class="fault">Not connected:</b> no serial device found.';
 				// we can still test the software with no connection by calling
-				// our fakeport's write rather than port.write()
+				// our fakePort's write rather than port.write()
 				test = true;
 				port = fakePort;
 			}
