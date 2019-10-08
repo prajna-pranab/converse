@@ -386,10 +386,10 @@
 				},
 				QOPM: () => {
 					// (00
-					if (data == '(NAK') return '<b>QOPM (Output mode (For 4000/5000))</b><br />Not recognised'
+					if (data == '(NAK') return '<b>QOPM (Output mode)</b><br />Not recognised'
 					const modes = {'00': 'Solo', '01': 'Parallel', '02': 'Phase 1',
 						'03': 'Phase 2', '04': 'Phase 3'};
-					return '<b>QOPM (Output mode (For 4000/5000))</b><br />' +
+					return '<b>QOPM (Output mode)</b><br />' +
 						'Mode: ' + modes[data.slice(1)];
 				},
 				QCST: () => {
@@ -619,90 +619,52 @@
 		// simulate port.write() and parser.on('data') events for testing
 		fakePort = {
 			write: (buff, err) => {
-				// real data returned from Conversol 5K III (except s/n)
+				// (mostly) real data returned from Conversol 5K III (except s/n)
 				switch (cmd) {
-					case 'QPI': rxData(
-						getBuff('(PI30')); break;
-					case 'QID':  rxData(
-						getBuff('(92931811100000')); break;
-					case 'QVFW':  rxData(
-						getBuff('(VERFW:00020.65')); break;
-					case 'QVFW2': rxData(
-						getBuff('(NAK')); break;
-					case 'QVFW3': rxData(
-						getBuff('(VERFW:00001.21')); break;
-					case 'QVFW4': rxData(
-						getBuff('(NAK')); break;
-					case 'QPIRI': rxData(
-						getBuff('(230.0 21.7 230.0 50.0 21.7 5000 5000 48.0 49.0 43.0 58.4 54.0 1 20 040 0 2 1 1 01 0 0 54.0 0')); break;
-					case 'QFLAG': rxData(
-						getBuff('(EaxyzDbjkuv')); break;
-					case 'QPIGS': rxData(
-						getBuff('(000.0 00.0 229.8 50.0 0137 0022 002 428 54.00 000 100 0035 00.0 305.6 00.00 00001 00010000 00 00 00000 010')); break;
-					case 'QPIGS2': rxData(
-						getBuff('(NAK')); break;
-					case 'QMOD': rxData(
-						getBuff('(B')); break;
-					case 'QPIWS': rxData(
-						getBuff('(000001000000000000000000000000000000')); break;
-					case 'QDI': rxData(
-						getBuff('(230.0 50.0 0030 42.0 54.0 56.4 46.0 60 0 0 2 0 0 0 0 0 1 1 1 0 1 0 54.0 0 1')); break;
-					case 'QBEQI': rxData(
-						getBuff('(0 060 030 040 030 58.40 000 120 0 0000')); break;
-					case 'QMCHGCR': rxData(
-						getBuff('(010 020 030 040 050 060 070 080')); break;
-					case 'QMUCHGCR': rxData(
-						getBuff('(002 010 020 030 040 050 060')); break;
-					case 'QMSCHGCR': rxData(
-						getBuff('(NAK')); break;
-					case 'QBOOT': rxData(
-						getBuff('(NAK')); break;
-					case 'QOPM': rxData(
-						getBuff('(NAK')); break;
-					case 'QCST': rxData(
-						getBuff('(NAK')); break;
-					case 'QCVT': rxData(
-						getBuff('(NAK')); break;
-					case 'QBV': rxData(
-						getBuff('(NAK')); break;
-					case 'Q1': rxData(
-						getBuff('(01 00 00 000 035 027 031 00 00 000 0030 0000 13')); break;
-					case 'QGS': rxData(
-						getBuff('(NAK')); break;
-					case 'QSID': rxData(
-						getBuff('(1492931811100046005535')); break;
-					case 'QID2': rxData(
-						getBuff('(NAK')); break;
-					case 'QDM': rxData(
-						getBuff('(NAK')); break;
-					case 'QGM': rxData(
-						getBuff('(NAK')); break;
-					case 'QCHT': rxData(
-						getBuff('(NAK')); break;
-					case 'QPPS': rxData(
-						getBuff('(NAK')); break;
-					case 'QCHGS': rxData(
-						getBuff('(NAK')); break;
-					case 'QMD': rxData(
-						getBuff('(NAK')); break;
-					case 'QVFTR': rxData(
-						getBuff('(NAK')); break;
-					case 'QPIHF': rxData(
-						getBuff('(NAK')); break;
-					case 'QPICF': rxData(
-						getBuff('(NAK')); break;
-					case 'QFS': rxData(
-						getBuff('(NAK')); break;
-					case 'QFAULT': rxData(
-						getBuff('(NAK')); break;
-					case 'QSVFW2': rxData(
-						getBuff('(NAK')); break;
+					case 'QPI': rxData(getBuff('(PI30')); break;
+					case 'QID':  rxData(getBuff('(92931811100000')); break;
+					case 'QVFW':  rxData(getBuff('(VERFW:00020.65')); break;
+					case 'QVFW2': rxData(getBuff('(NAK')); break;
+					case 'QVFW3': rxData(getBuff('(VERFW:00001.21')); break;
+					case 'QVFW4': rxData(getBuff('(NAK')); break;
+					case 'QPIRI': rxData(getBuff('(230.0 21.7 230.0 50.0 21.7 5000 5000 48.0 49.0 43.0 58.4 54.0 1 20 040 0 2 1 1 01 0 0 54.0 0')); break;
+					case 'QFLAG': rxData(getBuff('(EaxyzDbjkuv')); break;
+					case 'QPIGS': rxData(getBuff('(000.0 00.0 229.8 50.0 0137 0022 002 428 54.00 000 100 0035 00.0 305.6 00.00 00001 00010000 00 00 00000 010')); break;
+					case 'QPIGS2': rxData(getBuff('(NAK')); break;
+					case 'QMOD': rxData(getBuff('(B')); break;
+					case 'QPIWS': rxData(getBuff('(000001000000000000000000000000000000')); break;
+					case 'QDI': rxData(getBuff('(230.0 50.0 0030 42.0 54.0 56.4 46.0 60 0 0 2 0 0 0 0 0 1 1 1 0 1 0 54.0 0 1')); break;
+					case 'QBEQI': rxData(getBuff('(0 060 030 040 030 58.40 000 120 0 0000')); break;
+					case 'QMCHGCR': rxData(getBuff('(010 020 030 040 050 060 070 080')); break;
+					case 'QMUCHGCR': rxData(getBuff('(002 010 020 030 040 050 060')); break;
+					case 'QMSCHGCR': rxData(getBuff('(NAK')); break;
+					case 'QBOOT': rxData(getBuff('(NAK')); break;
+					case 'QOPM': rxData(getBuff('(NAK')); break;
+					case 'QCST': rxData(getBuff('(NAK')); break;
+					case 'QCVT': rxData(getBuff('(NAK')); break;
+					case 'QBV': rxData(getBuff('(NAK')); break;
+					case 'Q1': rxData(getBuff('(01 00 00 000 035 027 031 00 00 000 0030 0000 13')); break;
+					case 'QGS': rxData(getBuff('(NAK')); break;
+					case 'QSID': rxData(getBuff('(1492931811100046005535')); break;
+					case 'QID2': rxData(getBuff('(NAK')); break;
+					case 'QDM': rxData(getBuff('(NAK')); break;
+					case 'QGM': rxData(getBuff('(NAK')); break;
+					case 'QCHT': rxData(getBuff('(NAK')); break;
+					case 'QPPS': rxData(getBuff('(NAK')); break;
+					case 'QCHGS': rxData(getBuff('(NAK')); break;
+					case 'QMD': rxData(getBuff('(NAK')); break;
+					case 'QVFTR': rxData(getBuff('(NAK')); break;
+					case 'QPIHF': rxData(getBuff('(NAK')); break;
+					case 'QPICF': rxData(getBuff('(NAK')); break;
+					case 'QFS': rxData(getBuff('(NAK')); break;
+					case 'QFAULT': rxData(getBuff('(NAK')); break;
+					case 'QSVFW2': rxData(getBuff('(NAK')); break;
 					default: parseQuery(cmd, '');
 				}
 			}
 		}
 
-		// recieve data packets
+		// recieve data responses either from inverter or fakePort
 		const rxData = data => {
 			// response = body + crc + /r
 			const crc = data.slice(-3, -1),
@@ -795,7 +757,6 @@
 				port.on('open', () => {
 					console.log('Opened', port.path, port);
 					console.log('device:', devices[0]);
-					// port.write(Buffer.from([0x51,0x50,0x49,0x47,0x53,0xB7,0xA9,0x0D]));
 					parser.on('data', data => {rxData(data)});
 				});
 				// update window and log
@@ -807,7 +768,7 @@
 			} else {
 				console.warn('No serial device found!');
 				comsInfo.innerHTML =
-					'<b class="fault">Not connected:</b> no serial device found.';
+					'<b class="fault">Not connected:</b> test responses only.';
 				// we can still test the software with no connection by calling
 				// our fakePort's write instead of port.write()
 				test = true;
@@ -905,8 +866,55 @@
 			<button onClick="sendQuery('QPIHF')">QPIHF: ?</button><br />
 			<button onClick="sendQuery('QPICF')">QPICF: ?</button><br />
 			<button onClick="sendQuery('QSVFW2')">QSVFW2: ?</button><br />
-			<button onClick="sendQuery('QFS')">QFS: Fault query1?</button><br />
+			<button onClick="sendQuery('QFS')">QFS: Fault query 1?</button><br />
 			<button onClick="sendQuery('QFAULT')">QFS: Fault query2?</button><br />
+			<!--button onClick="sendQuery('Q3GV')">Q3GV:</button><br /-->
+			<!--button onClick="sendQuery('Q3GC')">Q3GC:</button><br /-->
+			<!--button onClick="sendQuery('Q3GW')">Q3GW:</button><br /-->
+			<!--button onClick="sendQuery('Q3AV')">Q3AV:</button><br /-->
+			<!--button onClick="sendQuery('Q3AC')">Q3AC:</button><br /-->
+			<!--button onClick="sendQuery('Q3AL')">Q3AL:</button><br /-->
+			<!--button onClick="sendQuery('Q3AW')">Q3AW:</button><br /-->
+			<!--button onClick="sendQuery('QPIFS')">QPIFS:</button><br /-->
+			<!--button onClick="sendQuery('QSPIFS')">QSPIFS:</button><br /-->
+			<!--button onClick="sendQuery('QTPIFS')">QTPIFS:</button><br /-->
+			<!--button onClick="sendQuery('QT')">QT:</button><br /-->
+			<!--button onClick="sendQuery('QFET')">QFET:</button><br /-->
+			<!--button onClick="sendQuery('QEY')">QEY:</button><br /-->
+			<!--button onClick="sendQuery('QEM')">QEM:</button><br /-->
+			<!--button onClick="sendQuery('QED')">QED:</button><br /-->
+			<!--button onClick="sendQuery('QEH')">QEH:</button><br /-->
+			<!--button onClick="sendQuery('QBYV')">QBYV:</button><br /-->
+			<!--button onClick="sendQuery('QBYF')">QBYF:</button><br /-->
+			<!--button onClick="sendQuery('QGOV')">QGOV:</button><br /-->
+			<!--button onClick="sendQuery('QGOF')">QGOF:</button><br /-->
+			<!--button onClick="sendQuery('QOPMP')">QOPMP:</button><br /-->
+			<!--button onClick="sendQuery('QMPPTV')">QMPPTV:</button><br /-->
+			<!--button onClick="sendQuery('QPVIPV')">QPVIPV:</button><br /-->
+			<!--button onClick="sendQuery('QLST')">QLST:</button><br /-->
+			<!--button onClick="sendQuery('QTPR')">QTPR:</button><br /-->
+			<!--button onClick="sendQuery('QODI2')">QODI2:</button><br /-->
+			<!--button onClick="sendQuery('QSTS')">QSTS:</button><br /-->
+			<!--button onClick="sendQuery('QGLTV')">QGLTV:</button><br /-->
+			<!--button onClick="sendQuery('QADI')">QADI:</button><br /-->
+			<!--button onClick="sendQuery('QVB')">QVB:</button><br /-->
+			<!--button onClick="sendQuery('QCHGC')">QCHGC:</button><br /-->
+			<!--button onClick="sendQuery('QMCC')">QMCC:</button><br /-->
+			<!--button onClick="sendQuery('QII')">QII:</button><br /-->
+			<!--button onClick="sendQuery('QPIBI')">QPIBI:</button><br /-->
+			<!--button onClick="sendQuery('QPINBY')">QPINBY:</button><br /-->
+			<!--button onClick="sendQuery('QFT')">QFT:</button><br /-->
+			<!--button onClick="sendQuery('QMN')">QMN:</button><br /-->
+			<!--button onClick="sendQuery('QGMN')">QGMN:</button><br /-->
+			<!--button onClick="sendQuery('QEBGP')">QEBGP:</button><br /-->
+			<!--button onClick="sendQuery('QOPF')">QOPF:</button><br /-->
+			<!--button onClick="sendQuery('QPDG')">QPDG:</button><br /-->
+			<!--button onClick="sendQuery('QPPD')">QPPD:</button><br /-->
+			<!--button onClick="sendQuery('QPFL')">QPFL:</button><br /-->
+			<!--button onClick="sendQuery('QP2GS')">QP2GS:</button><br /-->
+			<!--button onClick="sendQuery('QPGS0')">QPGS0:</button><br /-->
+			<!--button onClick="sendQuery('QP2GS0')">QP2GS0:</button><br /-->
+			<!--button onClick="sendQuery('QRST')">QRST:</button><br /-->
 		</div>
     </div>
 </body>
