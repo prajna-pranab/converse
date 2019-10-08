@@ -3,7 +3,7 @@ const {app, BrowserWindow} = require('electron');
 // open main window
 function createWindow() {
 	window = new BrowserWindow({
-		width: 800, height: 600,
+		width: 1024, height: 768,
 		autoHideMenuBar: true,
 		icon: __dirname + '/assets/icons/png/Icon-256.png',
 		backgroundColor: 'Window',
@@ -20,7 +20,6 @@ function createWindow() {
 /* for bluetooth
 app.commandLine.appendSwitch('enable-experimental-web-platform-features', true);
 app.commandLine.appendSwitch('enable-web-bluetooth', true);
-app.commandLine.appendSwitch('no-sandbox', true);
 */
 
 app.on('ready', createWindow)
