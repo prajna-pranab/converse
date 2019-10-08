@@ -13490,3 +13490,5 @@ old.main.js
 *.json~
 
 docs/
+
+node_modules/
