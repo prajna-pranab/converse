@@ -192,6 +192,7 @@
 						'PV1 Charging power: ' +
 							fields[19] + 'W';
 				},
+				// QPGS0
 				QPIGS2: () => {
 					if (test) data = '(0000 000.0 00.00 00000 00000000 0000 0000 0000 ' +
 						'000.0 00.00 0000 00000';
@@ -368,7 +369,7 @@
 					return details;
 				},
 				QMSCHGCR: () => {
-					if (test) data = '(000 000 000 000 000 000';
+					//if (test) data = '(000 000 000 000 000 000';
 					const fields = data.slice(1).split(' ');
 					let details = '<b>QMUCHGCR (Max solar charging current settings)</b><br />';
 					for (let fld of fields)
@@ -639,6 +640,8 @@
 						getBuff('(010 020 030 040 050 060 070 080')); break;
 					case 'QMUCHGCR': rxData(
 						getBuff('(002 010 020 030 040 050 060')); break;
+					case 'QMSCHGCR': rxData(
+						getBuff('(NAK')); break;
 					default: parseQuery(cmd, '');
 				}
 			}
@@ -647,18 +650,14 @@
 		// recieve data packets
 		const rxData = data => {
 			// response = body + crc + /r
-			const crc = data.slice(-3),
+			const crc = data.slice(-3, -1),
 				body = data.slice(0, -3).toString(),
 				crcTxt = crc.toString('hex'),
 				chk = CRCXModem(body);
 			// check crc
-			if (chk[0] != crc[0] || chk[1] != crc[1])
-				comsError.textContent = 'CRC error!'
-			else
-				comsError.textContent = '';
+			comsError.textContent = (chk[0] & crc[0] && chk[1] & crc[1]) ? '' : 'CRC error!';
 			// update window and log with results
 		 	document.querySelector('#recv').textContent = body;
-			console.log('Raw:', data);
 			console.log('Rx:', body, `(${crcTxt})`);
 		 	parseQuery(cmd, body);
 		}
@@ -723,6 +722,7 @@
 			}
 			// find port with Prolific Technology adapter
 			const devices = ports.filter( elm => {
+				// Cypress 0665:5161
 				return elm.vendorId == '067b'  && elm.productId == '2303';	
 			});
 			// use the first valid port if there is one
@@ -816,30 +816,30 @@
 			<button onClick="sendQuery('QPI')">Protocol ID</button><br />
 			<button onClick="sendQuery('QID')">Serial number</button><br />
 			<button onClick="sendQuery('QVFW')">Main CPU Firmware version</button><br />
-			<button onClick="sendQuery('QVFW2')">SCC1 CPU Firmware version</button><br />
+			<button onClick="sendQuery('QVFW2')">SCC1 CPU Firmware version??</button><br />
 			<button onClick="sendQuery('QVFW3')">SCC2 CPU Firmware version</button><br />
-			<button onClick="sendQuery('QVFW4')">SCC3 CPU Firmware version</button><br />
+			<button onClick="sendQuery('QVFW4')">SCC3 CPU Firmware version??</button><br />
 			<button onClick="sendQuery('QPIRI')">Rating Information</button><br />
 			<button onClick="sendQuery('QFLAG')">Flag status</button><br />
 			<button onClick="sendQuery('QPIGS')">General status</button><br />
-			<button onClick="sendQuery('QPIGS2')">General status 2</button><br />
+			<button onClick="sendQuery('QPIGS2')">General status 2??</button><br />
 			<button onClick="sendQuery('QMOD')">Operating Mode</button><br />
 			<button onClick="sendQuery('QPIWS')">Warning Status</button><br />
 			<button onClick="sendQuery('QDI')">Default setting values</button><br />
 			<button onClick="sendQuery('QMCHGCR')">Max charging current settings</button><br />
 			<button onClick="sendQuery('QMUCHGCR')">Max utility charge current settings</button><br />
-			<button onClick="sendQuery('QMSCHGCR')">Max solar charge current settings</button><br />
-			<button onClick="sendQuery('QBOOT')">DSP has bootstrap?</button><br />
-			<button onClick="sendQuery('QOPM')">Output mode (For 4000/5000)</button><br />
-			<button onClick="sendQuery('QCST')">Charging stages</button><br />
-			<button onClick="sendQuery('QCVT')">Absorb Charging time</button><br />
+			<button onClick="sendQuery('QMSCHGCR')">Max solar charge current settings??</button><br />
+			<button onClick="sendQuery('QBOOT')">DSP has bootstrap??</button><br />
+			<button onClick="sendQuery('QOPM')">Output mode (For 4000/5000)??</button><br />
+			<button onClick="sendQuery('QCST')">Charging stages??</button><br />
+			<button onClick="sendQuery('QCVT')">Absorb Charging time??</button><br />
 			<button onClick="sendQuery('QBEQI')">Equalisation</button>
 		</div>
 		<div>
 			<button onClick="sendQuery('QBV')">QBV: SoC?</button><br />
-			<button onClick="sendQuery('Q1')">Q1: status?</button><br />
+			<button onClick="sendQuery('Q1')">Q1: status?.</button><br />
 			<button onClick="sendQuery('QGS')">QGS: ?</button><br />
-			<button onClick="sendQuery('QSID')">QSID: id?</button><br />
+			<button onClick="sendQuery('QSID')">QSID: id?.</button><br />
 			<button onClick="sendQuery('QID2')">QID2: id?</button><br />
 			<button onClick="sendQuery('QDM')">QDM: device model?</button><br />
 			<button onClick="sendQuery('QCHT')">QCHT: CHT support?</button><br />
