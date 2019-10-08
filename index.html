@@ -48,40 +48,36 @@
 				},
 				QVFW: () => {
 					// response: (VERFW:00000.00
-					const fields = data.slice(6).split('.');
+					const fields = data.split(/\.|\:/);
 					return '<b>QVFW (Main CPU Firmware version)</b><br />' +
-						'Series: ' + fields[0] +
-						'<br />Version: ' + fields[1];
+						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QVFW2: () => {
 					// response: (VERFW2:00000.00
 					if (data == '(NAK')
 						return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />' +
 						'Not supported';
-					const fields = data.slice(7).split('.');
+					const fields = data.split(/\.|\:/);
 					return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />' +
-						'Series: ' + fields[0] +
-						'<br />Version: ' + fields[1];
+						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QVFW3: () => {
 					// response: (VERFW3:00000.00
 					if (data == '(NAK')
 						return '<b>QVFW3 (SCC2 CPU Firmware version)</b><br />' +
 						'Not supported';
-					const fields = data.slice(7).split('.');
+					const fields = data.split(/\.|\:/);
 					return '<b>QVFW3 (SCC2 CPU Firmware version)</b><br />' +
-						'Series: ' + fields[0] +
-						'<br />Version: ' + fields[1];
+						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QVFW4: () => {
 					// response: (VERFW4:00000.00
 					if (data == '(NAK')
 						return '<b>QVFW4 (SCC3 CPU Firmware version)</b><br />' +
 						'Not supported';
-					const fields = data.slice(7).split('.');
+					const fields = data.split(/\.|\:/);
 					return '<b>QVFW4 (SCC3 CPU Firmware version)</b><br />' +
-						'Series: ' + fields[0] +
-						'<br />Version: ' + fields[1];
+						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QPIRI: () => {
 					// response: (000.0 00.0 000.0 00.0 00.0 0000 0000 00.0
