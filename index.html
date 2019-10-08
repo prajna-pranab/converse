@@ -37,52 +37,50 @@
 		const parseQuery = (cmd, data) => {
 			const queries = {
 				QPI: () => {
-					// response: (PI00
+					// (PI00
+					if (data == '(NAK') return '<b>QPI (Protocol ID)</b><br />Not recognised'
 					return '<b>QPI (Protocol ID)</b><br />' +
 						'Protocol ID: ' + data.slice(1);
 				},
 				QID: () => {
-					// response: (00000000000000
+					// (00000000000000
+					if (data == '(NAK') return '<b>QID (Serial Number)</b><br />Not recognised'
 					return '<b>QID (Serial number)</b><br />' +
 						'Serial No: ' + data.slice(1);
 				},
 				QVFW: () => {
-					// response: (VERFW:00000.00
+					// (VERFW:00000.00
+					if (data == '(NAK') return '<b>QVFW (Main CPU FW version)</b><br />Not recognised'
 					const fields = data.split(/\.|\:/);
 					return '<b>QVFW (Main CPU Firmware version)</b><br />' +
 						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QVFW2: () => {
-					// response: (VERFW2:00000.00
-					if (data == '(NAK')
-						return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />' +
-						'Not supported';
+					// (VERFW2:00000.00
+					if (data == '(NAK') return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />Not recognised'
 					const fields = data.split(/\.|\:/);
 					return '<b>QVFW2 (SCC1 CPU Firmware version)</b><br />' +
 						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QVFW3: () => {
-					// response: (VERFW3:00000.00
-					if (data == '(NAK')
-						return '<b>QVFW3 (SCC2 CPU Firmware version)</b><br />' +
-						'Not supported';
+					// (VERFW3:00000.00
+					if (data == '(NAK') return '<b>QVFW3 (SCC2 CPU Firmware version)</b><br />Not recognised'
 					const fields = data.split(/\.|\:/);
 					return '<b>QVFW3 (SCC2 CPU Firmware version)</b><br />' +
 						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QVFW4: () => {
-					// response: (VERFW4:00000.00
-					if (data == '(NAK')
-						return '<b>QVFW4 (SCC3 CPU Firmware version)</b><br />' +
-						'Not supported';
+					// (VERFW4:00000.00
+					if (data == '(NAK') return '<b>QVFW4 (SCC3 CPU Firmware version)</b><br />Not recognised'
 					const fields = data.split(/\.|\:/);
 					return '<b>QVFW4 (SCC3 CPU Firmware version)</b><br />' +
 						'Version: ' + parseInt(fields[1]) + '.' + fields[2];
 				},
 				QPIRI: () => {
-					// response: (000.0 00.0 000.0 00.0 00.0 0000 0000 00.0
-					//			00.0 00.0 00.0 00.0 0 00 000 0 0 0 0 10 0 0 00.0 0 0
+					// (000.0 00.0 000.0 00.0 00.0 0000 0000 00.0
+					//	00.0 00.0 00.0 00.0 0 00 000 0 0 0 0 10 0 0 00.0 0 0
 					// our inverter doesn't send last field!
+					if (data == '(NAK') return '<b>QPIRI (Rating Information)</b><br />Not recognised'
 					const batteryTypes = {'0': 'AGM', '1': 'FLA', '2': 'User Defined'},
 						voltageRanges = {'0': 'Appliance', '1': 'UPS'},
 						outputSources = {'0': 'Utility first', '1': 'Solar first', '2': 'SBU'},
@@ -97,34 +95,35 @@
 						balances = {'0': 'PV max current', '1': 'PV max power'},
 						fields = data.slice(1).split(' ');
 					return '<b>QPIRI (Rating Information)</b><br />' +
-						'Grid rating voltage: ' + fields[0] + 'V<br />' +
-						'Grid rating current: ' + fields[1] + 'A<br />' +
-						'AC output rating voltage: ' + fields[2] + 'V<br />' +
-						'AC output rating frequency: ' + fields[3] + 'Hz<br />' +
-						'AC output rating current: ' + fields[4] + 'A<br />' +
-						'AC output rating apparent power: ' + fields[5] + 'VA<br />' +
-						'AC output rating active power: ' + fields[6] + 'W<br />' +
-						'Battery rating voltage: ' + fields[7] + 'V<br />' +
-						'Back-to-grid voltage: ' + fields[8] + 'V<br />' +
-						'Low voltage disconnect: ' + fields[9] + 'V<br />' +
-						'Bulk charge voltage: ' + fields[10] + 'V<br />' +
-						'Float voltage: ' + fields[11] + 'V<br />' +
+						'Grid rating voltage: ' + parseFloat(fields[0]) + 'V<br />' +
+						'Grid rating current: ' + parseFloat(fields[1]) + 'A<br />' +
+						'AC output rating voltage: ' + parseFloat(fields[2]) + 'V<br />' +
+						'AC output rating frequency: ' + parseFloat(fields[3]) + 'Hz<br />' +
+						'AC output rating current: ' + parseFloat(fields[4]) + 'A<br />' +
+						'AC output rating apparent power: ' + parseInt(fields[5]) + 'VA<br />' +
+						'AC output rating active power: ' + parseInt(fields[6]) + 'W<br />' +
+						'Battery rating voltage: ' + parseFloat(fields[7]) + 'V<br />' +
+						'Back-to-grid voltage: ' + parseFloat(fields[8]) + 'V<br />' +
+						'Low voltage disconnect: ' + parseFloat(fields[9]) + 'V<br />' +
+						'Bulk charge voltage: ' + parseFloat(fields[10]) + 'V<br />' +
+						'Float voltage: ' + parseFloat(fields[11]) + 'V<br />' +
 						'Battery Type: ' + batteryTypes[fields[12]] + '<br />' +
-						'Max AC charging current: ' + fields[13] + 'A<br />' +
-						'Max DC charging current: ' + fields[14] + 'A<br />' +
+						'Max AC charging current: ' + parseInt(fields[13]) + 'A<br />' +
+						'Max DC charging current: ' + parseInt(fields[14]) + 'A<br />' +
 						'AC Input voltage range: ' + voltageRanges[fields[15]] + '<br />' +
 						'Output source priority: ' + outputSources[fields[16]] + '<br />' +
 						'Charger source priority: ' + chargerSources[fields[17]] + '<br />' +
-						'Max in parallel: ' + fields[18] + '<br />' +
+						'Max in parallel: ' + parseInt(fields[18]) + '<br />' +
 						'Device type: ' + deviceTypes[fields[19]] + '<br />' +
 						'Topology: ' + topologies[fields[20]] + '<br />' +
 						'Output mode: ' + outputModes[fields[21]] + '<br />' +
-						'Battery re-discharge voltage: ' + fields[22] + 'V<br />' +
+						'Battery re-discharge voltage: ' + parseFloat(fields[22]) + 'V<br />' +
 						'PV condition for parallel: ' + pvStatuses[fields[23]] + '<br />' +
 						'PV power balance: ' + balances[fields[24]];
 				},
 				QFLAG: () => {
-					// response: (EaxyzDbjkuv
+					// (EaxyzDbjkuv
+					if (data == '(NAK') return '<b>QFLAG (Flag status)</b><br />Not recognised'
 					const flag = letter => {
 						if (data.indexOf(letter) == -1) return 'Not supported<br />';
 						return (data.indexOf(letter) < data.indexOf('D') ?
@@ -143,27 +142,28 @@
 						'Data log popup: ' + flag('l');
 				},
 				QPIGS: () => {
-					// response: '(000.0 00.0 000.0 00.0 0000 0000 000 000 00.00 000 ' +
-					//	'000 0000 0000 000.0 00.00 00000 10101010 00 00 00000 000';
+					// (000.0 00.0 000.0 00.0 0000 0000 000 000 00.00 000 
+					//	000 0000 0000 000.0 00.00 00000 10101010 00 00 00000 000
+					if (data == '(NAK') return '<b>QPIGS (Inverter status)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[16];
 					return '<b>QPIGS (Inverter status)</b><br />' + 
-						'Grid voltage: ' + fields[0] + 'V<br />' +
-						'Grid frequency: ' + fields[1] + 'Hz<br />' +
-						'AC output voltage: ' + fields[2] + 'V<br />' +
-						'AC output frequency: ' + fields[3] + 'Hz<br />' +
-						'AC output apparent power: ' + fields[4] + 'VA<br />' +
-						'AC output active power: ' + fields[5] + 'W<br />' +
-						'Output load: ' + fields[6] + '%<br />' +
-						'Bus voltage: ' + fields[7] + 'V<br />' +
-						'Battery voltage: ' + fields[8] + 'V<br />' +
-						'Battery charging current: ' + fields[9] + 'A<br />' +
-						'Battery capacity: ' + fields[10] + '%<br />' +
-						'Heatsink temp: ' + fields[11] + '&deg;C<br />' +
-						'SCC1 Input current: ' + fields[12] + 'A<br />' +
-						'SCC1 Input voltage: ' + fields[13] + 'V<br />' +
-						'SCC1 Battery voltage: ' + fields[14] + 'V<br />' +
-						'Battery discharge current: ' + fields[15] + 'A<br />' +
+						'Grid voltage: ' + parseFloat(fields[0]) + 'V<br />' +
+						'Grid frequency: ' + parseFloat(fields[1]) + 'Hz<br />' +
+						'AC output voltage: ' + parseFloat(fields[2]) + 'V<br />' +
+						'AC output frequency: ' + parseFloat(fields[3]) + 'Hz<br />' +
+						'AC output apparent power: ' + parseInt(fields[4]) + 'VA<br />' +
+						'AC output active power: ' + parseInt(fields[5]) + 'W<br />' +
+						'Output load: ' + parseInt(fields[6]) + '%<br />' +
+						'Bus voltage: ' + parseFloat(fields[7]) + 'V<br />' +
+						'Battery voltage: ' + parseFloat(fields[8]) + 'V<br />' +
+						'Battery charging current: ' + parseInt(fields[9]) + 'A<br />' +
+						'Battery capacity: ' + parseInt(fields[10]) + '%<br />' +
+						'Heatsink temp: ' + parseInt(fields[11]) + '&deg;C<br />' +
+						'SCC1 Input current: ' + parseFloat(fields[12]) + 'A<br />' +
+						'SCC1 Input voltage: ' + parseFloat(fields[13]) + 'V<br />' +
+						'SCC1 Battery voltage: ' + parseFloat(fields[14]) + 'V<br />' +
+						'Battery discharge current: ' + parseInt(fields[15]) + 'A<br />' +
 						'Status: <br />&nbsp;&nbsp;' + 
 						'Add SBU priority: ' + (flags[0] == '1' ? 'Yes' : 'No') +
 							'<br />&nbsp;&nbsp;' +
@@ -182,41 +182,41 @@
 						'AC charging: ' + (flags[7] == '1' ? 'On' : 'Off') +
 							'<br />' +
 						'Battery voltage offset: ' +
-							fields[17] +'mV<br />' +
+							parseInt(fields[17]) +'mV<br />' +
 						'EEprom version: ' +
 							fields[18] + '<br />' +
 						'PV1 Charging power: ' +
-							fields[19] + 'W';
+							parseInt(fields[19]) + 'W';
 				},
 				// QPGS0
 				QPIGS2: () => {
-					if (test) data = '(0000 000.0 00.00 00000 00000000 0000 0000 0000 ' +
-						'000.0 00.00 0000 00000';
+					// (0000 000.0 00.00 00000 00000000 0000 0000 0000 
+					//	000.0 00.00 0000 00000
+					if (data == '(NAK') return '<b>QPIGS2 (Inverter status 2)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[4];
-					if (data == '(NAK') return 'NAK';
-
-					return '<b>QPIGS2 (SCC additional status)</b><br />' +
-						'SCC2 input current: ' + fields[0] + 'A<br />' +
-						'SCC2 input voltage: ' + fields[1] + 'V<br />' +
-						'SCC2 battery voltage: ' + fields[2] + 'V<br />' +
-						'SCC2 charging power: ' + fields[3] + 'W<br />' +
+					return '<b>QPIGS2 (Inverter status 2)</b><br />' +
+						'SCC2 input current: ' + parseInt(fields[0]) + 'A<br />' +
+						'SCC2 input voltage: ' + parseFloat(fields[1]) + 'V<br />' +
+						'SCC2 battery voltage: ' + parseFloat(fields[2]) + 'V<br />' +
+						'SCC2 charging power: ' + parseInt(fields[3]) + 'W<br />' +
 						'SCC2 charging: ' +
 							(flags[0] == '1' ? 'Yes<br />' : 'No<br />') +
 						'SCC3 charging: ' +
 							(flags[1] == '1' ? 'Yes<br />' : 'No<br />') +
-						'AC charging current: ' + fields[5] + 'A<br />' +
-						'AC charging power: ' + fields[6] + 'W<br />' +
-						'SCC3 input current: ' + fields[7] + 'A<br />' +
-						'SCC3 input voltage: ' + fields[8] + 'V<br />' +
-						'SCC3 battery voltage: ' + fields[9] + 'V<br />' +
-						'SCC3 charging power: ' + fields[10] + 'W<br />' +
-						'Total PV charging power: ' + fields[11] + 'W';
+						'AC charging current: ' + parseInt(fields[5]) + 'A<br />' +
+						'AC charging power: ' + parseInt(fields[6]) + 'W<br />' +
+						'SCC3 input current: ' + parseInt(fields[7]) + 'A<br />' +
+						'SCC3 input voltage: ' + parseFloat(fields[8]) + 'V<br />' +
+						'SCC3 battery voltage: ' + parseFloat(fields[9]) + 'V<br />' +
+						'SCC3 charging power: ' + parseInt(fields[10]) + 'W<br />' +
+						'Total PV charging power: ' + parseInt(fields[11]) + 'W';
 				},
 				QMOD: () => {
+					if (data == '(NAK') return '<b>QMOD (Operating Mode)</b><br />Not recognised'
 					const modes = {'P': 'Power On', 'S': 'Standby', 'L': 'Line',
 						'B': 'Battery', 'Fault': 'Fault', 'H': 'Power Saving'};
-					// response: (B
+					// (B
 					return '<b>QMOD (Operating Mode)</b><br />' + 
 						'Mode: ' + modes[data[1]];
 				},
@@ -224,7 +224,8 @@
 					/*
 						Returns different values on protocol 3000
 					*/
-					//if (test) data = '(10101010101010101010101010101010101010';
+					// (10101010101010101010101010101010101010
+					if (data == '(NAK') return '<b>QPIWS (Warning Status)</b><br />Not recognised'
 					const isSet = pos => { return data[pos] == '1' }
 					const chk = (str, pos, type) => {
 						switch (type) {
@@ -282,23 +283,24 @@
 						chk('SCC3 Battery too low to charge', 38, 'warn');
 				},
 				QDI: () => {
+					if (data == '(NAK') return '<b>QDI (Default setting values)</b><br />Not recognised'
 					const modes = {'0': 'Solo', '1': 'Parallel', '2': 'Phase 1',
 						'3': 'Phase 2', '4': 'Phase 2'},
 						pvStatuses = {'0': 'On one OK', '1': 'On all OK'},
 						balances = {'0': 'PV max current', '1': 'PV max power'},
 						stages = {'0': 'Auto', '1': '2 stage', '2': '3 stage'};
-					//if (test) data = '(000.0 00.0 0000 00.0 00.0 00.0 00.0 00 0 0 ' +
-					//	'0 0 0 0 0 0 1 1 0 0 1 0 00.0 0 0 1 1 000 000';
+					// (000.0 00.0 0000 00.0 00.0 00.0 00.0 00 0 0 
+					//	0 0 0 0 0 0 1 1 0 0 1 0 00.0 0 0 1 1 000 000
 					const fields = data.slice(1).split(' ');
 					return '<b>QDI (Default setting values)</b><br />' +
-						'AC output voltage: ' + fields[0] + 'V<br />' +
-						'AC output frequency: ' + fields[1] + 'Hz<br />' +
-						'Max AC charging current: ' + fields[2] + 'A<br />' +
-						'Under voltage: ' + fields[3] + 'V<br />' +
-						'Float voltage: ' + fields[4] + 'V<br />' +
-						'Bulk voltage: ' + fields[5] + 'V<br />' +
-						'Recharge voltage: ' + fields[6] + 'V<br />' +
-						'Max DC charging current: ' + fields[7] + 'A<br />' +
+						'AC output voltage: ' + parseFloat(fields[0]) + 'V<br />' +
+						'AC output frequency: ' + parseFloat(fields[1]) + 'Hz<br />' +
+						'Max AC charging current: ' + parseInt(fields[2]) + 'A<br />' +
+						'Low voltage disconnect: ' + parseFloat(fields[3]) + 'V<br />' +
+						'Float voltage: ' + parseFloat(fields[4]) + 'V<br />' +
+						'Bulk voltage: ' + parseFloat(fields[5]) + 'V<br />' +
+						'Back-to-grid voltage: ' + parseFloat(fields[6]) + 'V<br />' +
+						'Max DC charging current: ' + parseInt(fields[7]) + 'A<br />' +
 						'AC Input voltage range: ' +
 							(fields[8] == '0' ? 'Appliance<br />' : 'UPS<br />') +
 						'Output source priority: ' +
@@ -326,184 +328,204 @@
 						'LCD timeout: ' +
 							(fields[20] == '0' ? 'Disabled<br />' : 'Enabled<br />') +
 						'Output mode: ' + modes[fields[21]] + '<br />' +
-						'Battery re-discharge voltage: ' + fields[22] + 'V<br />' +
+						'Battery re-discharge voltage: ' + parseFloat(fields[22]) + 'V<br />' +
 						'PV condition for parallel: ' + pvStatuses[fields[23]] + '<br />' +
 						'PV power balance: ' + balances[fields[24]] + '<br />' +
 						'Charging stages: ' + stages[fields[25]] + '<br />' +
 						'Data log popup: ' +
 							(fields[26] == '0' ? 'Disabled<br />' : 'Enabled<br />') +
-						'Max Solar charging current: ' + fields[27] + 'A<br />' +
-						'CV Charging time: ' + fields[28] + 'mins';
+						'Max Solar charging current: ' + parseInt(fields[27]) + 'A<br />' +
+						'CV Charging time: ' + parseInt(fields[28]) + 'mins';
 				},
 				QBEQI: () => {
-					//if (test) data = '(1 000 000 000 000 00.00 000 000';
+					// (1 000 000 000 000 00.00 000 000
+					if (data == '(NAK') return '<b>QBEQI (Equalisation status)</b><br />Not recognised'
 					const fields = data.slice(1).split(' ');
 					return '<b>QBEQI (Equalisation status)</b><br />' +
 						'Battery equalized: ' + (fields[0] == '1' ? 'Yes' : 'No') + '<br />' +
-						'Equalize time: ' + fields[1] + 'mins<br />' +
-						'Equalize Interval: ' + fields[2] + 'days<br />' +
-						'Max current: ' + fields[3] + 'A<br />' +
-						'Next equalize: ' + fields[4] + 'days<br />' +
-						'Equalized voltage: ' + fields[5] + 'V<br />' +
-						'Absorb time: ' + fields[6] + 'mins<br />' +
-						'Equalize timeout: ' + fields[7] + 'mins';
+						'Equalize time: ' + parseInt(fields[1]) + 'mins<br />' +
+						'Equalize Interval: ' + parseInt(fields[2]) + 'days<br />' +
+						'Max current: ' + parseInt(fields[3]) + 'A<br />' +
+						'Next equalize: ' + parseInt(fields[4]) + 'days<br />' +
+						'Equalized voltage: ' + parseFloat(fields[5]) + 'V<br />' +
+						'Absorb time: ' + parseInt(fields[6]) + 'mins<br />' +
+						'Equalize timeout: ' + parseInt(fields[7]) + 'mins';
 				},
 				QMCHGCR: () => {
-					//if (test) data = '(000 000 000 000';
+					// (000 000 000 000
+					if (data == '(NAK') return '<b>QMCHGCR (Max charging current settings)</b><br />Not recognised'
 					const fields = data.slice(1).split(' ');
 					let details = '<b>QMCHGCR (Max charging current settings)</b><br />';
 					for (let fld of fields)
-						details += fld + '<br />';
+						details += parseInt(fld) + 'A<br />';
 					return details;
 				},
 				QMUCHGCR: () => {
-					//if (test) data = '(000 000 000 000 000 000';
+					// (000 000 000 000 000 000
+					if (data == '(NAK') return '<b>QMUCHGCR (Max utility charging current settings)</b><br />Not recognised'
 					const fields = data.slice(1).split(' ');
 					let details = '<b>QMUCHGCR (Max utility charging current settings)</b><br />';
 					for (let fld of fields)
-						details += fld + '<br />';
+						details += parseInt(fld) + 'A<br />';
 					return details;
 				},
 				QMSCHGCR: () => {
-					//if (test) data = '(000 000 000 000 000 000';
+					// (000 000 000 000 000 000
+					if (data == '(NAK') return '<b>QMSCHGCR (Max solar charging current settings)</b><br />Not recognised'
 					const fields = data.slice(1).split(' ');
 					let details = '<b>QMUCHGCR (Max solar charging current settings)</b><br />';
 					for (let fld of fields)
-						details += fld + '<br />';
+						details += parseInt(fld) + 'A<br />';
 					return details;
 				},
 				QBOOT: () => {
-					if (test) data = '(1';
+					// (1
+					if (data == '(NAK') return '<b>QBOOT (DSP has bootstrap?)</b><br />Not recognised'
 					return '<b>QBOOT (DSP has bootstrap?)</b><br />' +
 						'Has bootstrap: ' + (data.slice(1) == '1' ? 'Yes' : 'No');
 				},
 				QOPM: () => {
-					if (test) data = '(00';
+					// (00
+					if (data == '(NAK') return '<b>QOPM (Output mode (For 4000/5000))</b><br />Not recognised'
 					const modes = {'00': 'Solo', '01': 'Parallel', '02': 'Phase 1',
 						'03': 'Phase 2', '04': 'Phase 3'};
 					return '<b>QOPM (Output mode (For 4000/5000))</b><br />' +
 						'Mode: ' + modes[data.slice(1)];
 				},
 				QCST: () => {
-					if (test) data = '(00';
+					// (00
+					if (data == '(NAK') return '<b>QCST (Charging stage enquiry)</b><br />Not recognised'
 					const modes = {'00': 'Auto', '01': '2 Stage', '02': '3 Stage'};
 					return '<b>QCST (Charging stage enquiry)</b><br />' +
 						'Stages: ' + modes[data.slice(1)];
 				},
 				QCVT: () => {
-					if (test) data = '(000';
+					// (000
+					if (data == '(NAK') return '<b>QCVT (Charging time in CV mode)</b><br />Not recognised'
 					const details = data.slice(1);
 					return '<b>QCVT (Charging time in CV mode)</b><br />' +
-						'Time: ' + (details == '255' ? 'Auto' : details + 'mins');
+						'Time: ' + (details == '255' ? 'Auto' : parseInt(details) + 'mins');
 				},
 				QBV: () => {
 					// (000
+					if (data == '(NAK') return '<b>QBV (SoC compensated voltage?)</b><br />Not recognised'
 					const details = data.slice(1);
 					return '<b>QBV (SoC compensated voltage?)</b><br />' +
 						'Not yet supported';
 				},
 				Q1: () => {
-					// '(0000 00000 00 00 00 000 000 000 000' +
-					//	'00 00 000 0000 0000 0000 00.00 10';
+					// (0000 00000 00 00 00 000 000 000 000 00 00 000 0000 0000 0000 00.00 10
+					if (data == '(NAK') return '<b>Q1 (Undocumented)</b><br />Not recognised'
 					const statuses = {'10': 'Not charging', '11': 'Bulk mode',
 						'12': 'Absorb mode', '13': 'Float mode'},
 						fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>Q1 (Undocumented)</b><br />' +
-						'Absorb (CV) time: ' + fields[0] + 'secs<br />' +
-						'Float time: ' + fields[1] + 'secs<br />' +
+						'Absorb (CV) time: ' + parseInt(fields[0]) + 'sec<br />' +
+						'Float time: ' + parseInt(fields[1]) + 'sec<br />' +
 						'SCC ok: ' + (fields[2] == '01' ? 'OK<br />' : 'Not OK<br />') +
 						'Allow SCC on: ' + (fields[3] == '01' ? 'Yes<br />' : 'No<br />') +
-						'Average charge current: ' + fields[4] + '<br />' +
-						'SCC PWM temperature: ' + fields[5] + '&deg;C<br />' +
-						'Battery temperature: ' + fields[6] + '&deg;C<br />' +
-						'Transformer temperature: ' + fields[7] + '&deg;C<br />' +
+						'Average charge current: ' + parseInt(fields[4]) + 'A<br />' +
+						'SCC PWM temperature: ' + parseInt(fields[5]) + '&deg;C<br />' +
+						'Battery temperature: ' + parseInt(fields[6]) + '&deg;C<br />' +
+						'Transformer temperature: ' + parseInt(fields[7]) + '&deg;C<br />' +
 						'GPADAT (GPIO13) bit: ' + fields[8] + '<br />' +
 						'Fan lock status: ' + (fields[9] == '01' ? 'Locked<br />' : 'Not Locked<br />') +
-						'Fan PWM duty: ' + fields[10] + '<br />' +
-						'Fan speed: ' + fields[11] + '%<br />' +
-						'SCC charge power: ' + fields[12] + 'W<br />' +
+						'Fan PWM duty: ' + parseInt(fields[10]) + '<br />' +
+						'Fan speed: ' + parseInt(fields[11]) + '%<br />' +
+						'SCC charge power: ' + parseInt(fields[12]) + 'W<br />' +
 						'Parallel warning: ' + fields[13] + '<br />' +
-						'AC sync frequency: ' + fields[14] + 'Hz<br />' +
+						'AC sync frequency: ' + parseInt(fields[14]) + 'Hz<br />' +
 						'Inverter charge status:' + statuses[fields[15]];
 				},
 				QGS: () => {
-					//if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QGS (Undocumented)</b><br />Not recognised'
 					const statuses = {'10': 'Not charging', '11': 'Bulk mode',
 						'12': 'Absorb mode'},
 						fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QGS (Undocumented: ?)</b><br />' +
+					return '<b>QGS (Undocumented)</b><br />' +
 						'Not yet implemented';
 				},
 				QSID: () => {
-					//if (test) data = '(1492931811100046005535';
+					// (1492931811100046005535
+					if (data == '(NAK') return '<b>QSID (Undocumented: serial no?)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QSID (Undocumented: serial no?)</b><br />' +
 						'Not yet implemented';
 				},
 				QID2: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QID2 (Undocumented: id?)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QID2 (Undocumented: id?)</b><br />' +
 						'Not yet implemented';
 				},
 				QDM: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QDM (Undocumented: device model?)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QGS (Undocumented: device model?)</b><br />' +
+					return '<b>QDM (Undocumented: device model?)</b><br />' +
 						'Not yet implemented';
 				},
 				QCHT: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QCHT (Undocumented: CHT support?)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QCHT (Undocumented: CHT support)</b><br />' +
+					return '<b>QCHT (Undocumented: CHT support?)</b><br />' +
 						'Not yet implemented';
 				},
 				QPPS: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QPPS (Undocumented: QPPS support?)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QPPS (Undocumented: QPPS support)</b><br />' +
+					return '<b>QPPS (Undocumented: QPPS support?)</b><br />' +
 						'Not yet implemented';
 				},
 				QCHGS: () => {
-					if (test) data = '(0000';
+					if (data == '(NAK') return '<b>QCHGS (Undocumented: CHGS id?)</b><br />Not recognised'
+					// (0000
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
 					return '<b>QCHGS (Undocumented: CHGS id?)</b><br />' +
 						'Not yet implemented';
 				},
 				QMD: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QMD (Undocumented)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QMD (Undocumented: ?)</b><br />' +
+					return '<b>QMD (Undocumented)</b><br />' +
 						'Not yet implemented';
 				},
 				QVFTR: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QVFTR (Undocumented)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QVFTR (Undocumented: ?)</b><br />' +
+					return '<b>QVFTR (Undocumented)</b><br />' +
 						'Not yet implemented';
 				},
 				QPIHF: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QPIHF (Undocumented)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QPIHF (Undocumented: ?)</b><br />' +
+					return '<b>QPIHF (Undocumented)</b><br />' +
 						'Not yet implemented';
 				},
 				QPICF: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QPICF (Undocumented)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QPICF (Undocumented: ?)</b><br />' +
+					return '<b>QPICF (Undocumented)</b><br />' +
 						'Not yet implemented';
 				},
 				QFS: () => {
@@ -511,8 +533,9 @@
 					 from posting by Coulomb
 					 http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2200#p71161
 					*/
-					if (test) data = '(00 00 00 0000 0000 0000 000.0 00.00 000.0 ' +
-					'00.00 000.0 000.0 00.0 000 000';
+					// (00 00 00 0000 0000 0000 000.0 00.00 000.0
+					//  00.00 000.0 000.0 00.0 000 000
+					if (data == '(NAK') return '<b>QFS Fault query?</b><br />Not recognised'
 					const modes = {'00': 'Power On', '01': 'Standby', '02': 'Power Saving', '03': 'Battery',
 						'04': 'Line', '05': 'Bypass', '06': 'Fault', '07': 'Shutdown'},
 						fields = data.slice(1).split(' '),
@@ -554,8 +577,8 @@
 					 from posting by Coulomb
 					 http://forums.aeva.asn.au/viewtopic.php?f=64&t=4332&start=2200#p71161
 					*/
-					if (test) data = '(00 00 0000 0000 0000 000.0 000.0 00.00' +
-						' 000.0 000.0';
+					// (00 00 0000 0000 0000 000.0 000.0 00.00 000.0 000.0
+					if (data == '(NAK') return '<b>QFAULT Fault query?</b><br />Not recognised'
 					const modes = {'00': 'Power On', '01': 'Standby', '02': 'Power Saving',
 						'03': 'Battery', '04': 'Line', '05': 'Bypass', '06': 'Fault', '07': 'Shutdown'},
 						fields = data.slice(1).split(' '),
@@ -573,10 +596,11 @@
 						'Output current: ' + fields[9] + 'A';
 				},
 				QSVFW2: () => {
-					if (test) data = '(0000';
+					// (0000
+					if (data == '(NAK') return '<b>QSVFW2 (Undocumented)</b><br />Not recognised'
 					const fields = data.slice(1).split(' '),
 						flags = fields[2];
-					return '<b>QSVFW2 (Undocumented: ?)</b><br />' +
+					return '<b>QSVFW2 (Undocumented)</b><br />' +
 						'Not yet implemented';
 				}
 			}
@@ -595,6 +619,7 @@
 		// simulate port.write() and parser.on('data') events for testing
 		fakePort = {
 			write: (buff, err) => {
+				// real data returned from Conversol 5K III (except s/n)
 				switch (cmd) {
 					case 'QPI': rxData(
 						getBuff('(PI30')); break;
@@ -624,19 +649,53 @@
 						getBuff('(230.0 50.0 0030 42.0 54.0 56.4 46.0 60 0 0 2 0 0 0 0 0 1 1 1 0 1 0 54.0 0 1')); break;
 					case 'QBEQI': rxData(
 						getBuff('(0 060 030 040 030 58.40 000 120 0 0000')); break;
-					case 'QBV': rxData(
-						getBuff('(NAK')); break;
-					case 'Q1': rxData(
-						getBuff('(01 00 00 000 035 027 031 00 00 000 0030 0000 13')); break;
-					case 'QBV': rxData(
-						getBuff('(QGS')); break;
-					case 'QSID': rxData(
-						getBuff('(1492931811100046005535')); break;
 					case 'QMCHGCR': rxData(
 						getBuff('(010 020 030 040 050 060 070 080')); break;
 					case 'QMUCHGCR': rxData(
 						getBuff('(002 010 020 030 040 050 060')); break;
 					case 'QMSCHGCR': rxData(
+						getBuff('(NAK')); break;
+					case 'QBOOT': rxData(
+						getBuff('(NAK')); break;
+					case 'QOPM': rxData(
+						getBuff('(NAK')); break;
+					case 'QCST': rxData(
+						getBuff('(NAK')); break;
+					case 'QCVT': rxData(
+						getBuff('(NAK')); break;
+					case 'QBV': rxData(
+						getBuff('(NAK')); break;
+					case 'Q1': rxData(
+						getBuff('(01 00 00 000 035 027 031 00 00 000 0030 0000 13')); break;
+					case 'QGS': rxData(
+						getBuff('(NAK')); break;
+					case 'QSID': rxData(
+						getBuff('(1492931811100046005535')); break;
+					case 'QID2': rxData(
+						getBuff('(NAK')); break;
+					case 'QDM': rxData(
+						getBuff('(NAK')); break;
+					case 'QGM': rxData(
+						getBuff('(NAK')); break;
+					case 'QCHT': rxData(
+						getBuff('(NAK')); break;
+					case 'QPPS': rxData(
+						getBuff('(NAK')); break;
+					case 'QCHGS': rxData(
+						getBuff('(NAK')); break;
+					case 'QMD': rxData(
+						getBuff('(NAK')); break;
+					case 'QVFTR': rxData(
+						getBuff('(NAK')); break;
+					case 'QPIHF': rxData(
+						getBuff('(NAK')); break;
+					case 'QPICF': rxData(
+						getBuff('(NAK')); break;
+					case 'QFS': rxData(
+						getBuff('(NAK')); break;
+					case 'QFAULT': rxData(
+						getBuff('(NAK')); break;
+					case 'QSVFW2': rxData(
 						getBuff('(NAK')); break;
 					default: parseQuery(cmd, '');
 				}
